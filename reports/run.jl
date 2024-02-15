@@ -201,8 +201,15 @@ end
 
 exp_nb = parse(Int64, ARGS[2])
 
-const General_dir = joinpath(dirname(pathof(General)), "..", ".git")
-const LuMV_dir = joinpath(dirname(pathof(LuMV)), "..", ".git")
+function git_dir(package)
+    path = split(pathof(package), "/")
+    fi = findlast(x -> x == string(package), path)
+    fi = isnothing(fi) ? length(path)-1 : fi
+    return "/"*joinpath(path[1:fi]..., ".git")
+end
+
+const General_dir = git_dir(General)
+const LuMV_dir = git_dir(LuMV)
 git_head(gitdir) = strip(read(`git --git-dir $gitdir rev-parse HEAD`, String))
 git_status(gitdir) = begin
     workdir = gitdir[1:end-5]
