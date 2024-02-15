@@ -1,6 +1,6 @@
 # Experiment name
 name = "sfsw"
-title = "SF-Sw"
+title = "SF-SW (\$\\beta \$ = 0.075)"
 
 # Experiment selection
 α_Θ_exps = true
@@ -12,13 +12,13 @@ mmca_exps = true
 # Default paramameters
 n = 64
 n_small = 20
-β = 0.2
+β = 0.075
 μ = 0.15
 ν = 0.0
 α = 0.5
 Θ = 0.5
 
-Tₑ = 500
+Tₑ = 800
 Nb_networks = 5
 Nb_outers = 8
 Nb_trajectories = 25
