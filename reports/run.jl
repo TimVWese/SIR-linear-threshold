@@ -170,8 +170,8 @@ exp_nb = parse(Int64, ARGS[2])
 
 function git_dir(package)
     path = split(pathof(package), "/")
-    fi = findlast(x -> x == string(package), path)
-    fi = isnothing(fi) ? length(path)-1 : fi
+    fi = findlast(x -> x == "src", path)
+    fi = isnothing(fi) ? length(path)-1 : fi-1
     return "/"*joinpath(path[1:fi]..., ".git")
 end
 
