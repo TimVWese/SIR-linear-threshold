@@ -7,7 +7,6 @@ title = "test"
 β_crit_exps = true
 ρ_β_exps = true
 ρ_t_exps = true
-mmca_exps = true
 
 # Default paramameters
 n = 16
@@ -37,11 +36,9 @@ network_epi_small() = erdos_renyi(n_small^2, 0.05)
 network_opi_small() = watts_strogatz(n_small^2, 4, 1)
 
 dynamics(epi, opi) = LuMV_bi(epi, opi)
-mmca_dynamics(epi, opi) = mmca.sir(epi, opi)
 
 dynamics(exp) = dynamics(read_from_mtx("graph_data/epi_$(exp).mtx"), read_from_mtx("graph_data/opi_$(exp).mtx"))
 small_dynamics(exp) = dynamics(read_from_mtx("graph_data/epi_small_$(exp).mtx"), read_from_mtx("graph_data/opi_small_$(exp).mtx"))
-mmca_dynamics(exp) = mmca_dynamics(read_from_mtx("graph_data/epi_$(exp).mtx"), read_from_mtx("graph_data/opi_$(exp).mtx"))
 
 x₀_gen!(x) = init!(x; nb_I=nb_I, prop_A=prop_A)
 
@@ -151,20 +148,3 @@ prec_dim = "y"
     xlabel = "\$\\alpha\$",
 )
 
-# MMCA version of proportion of A and R depending on βᶜ
-
-mmca_params = (
-    N = n^2,
-
-    βs = ρ_β_params.βs, # best not to touch
-    xs = ρ_β_params.xs, # best not to touch
-
-    dynamics = mmca_dynamics,
-
-    x₀_gen! = (x, ws) -> mmca.init!(x, ws; nb_I=nb_I, prop_A=prop_A),
-    p_gen = (β, α) -> (β = β, μ = μ, Θ = Θ, α = α),
-
-    Tₑ = Tₑ,
-    Nb_networks = Nb_networks,
-    Nb = Nb_trajectories,
-)

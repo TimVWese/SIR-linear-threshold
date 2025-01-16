@@ -157,39 +157,6 @@ function ρ_t(params, exp_nb)
     writedlm("tdata/As_$(exp_nb).dat", hcat(1:params.Tₑ, As))
 end
 
-function mmca_ρ(params, exp_nb)
-    N = params.N
-
-    Rs = zeros(length(params.xs), length(params.βs))
-    As = zeros(length(params.xs), length(params.βs))
-
-    avgₛs = [zeros(3) for i in 1:Threads.nthreads()]
-    avgₒs = [zeros(2) for i in 1:Threads.nthreads()]
-    x₀s = [zeros(6N) for i in 1:Threads.nthreads()]
-    wss = [zeros(2N) for i in 1:Threads.nthreads()]
-    nds = [params.dynamics(exp_nb) for i in 1:Threads.nthreads()]
-
-    for (x_idx, x) in enumerate(params.xs)
-        Threads.@threads for β_idx in eachindex(params.βs)
-            tid = Threads.threadid()
-            avgₛ = avgₛs[tid]
-            avgₒ = avgₒs[tid]
-            x₀ = x₀s[tid]
-
-            β = params.βs[β_idx]
-            p = params.p_gen(β, x)
-            x₀_gen! = x -> params.x₀_gen!(x, wss[tid])
-
-            mmca.solve_iter_final!(avgₛ, avgₒ, x₀, nds[tid], x₀_gen!, p, params.Tₑ, params.Nb)
-            Rs[x_idx, β_idx] = avgₛ[3]
-            As[x_idx, β_idx] = avgₒ[2]
-        end
-    end
-
-    writedlm("ldata/Rs_mmca_$(exp_nb).dat", hcat(params.βs, Rs'))
-    writedlm("ldata/As_mmca_$(exp_nb).dat", hcat(params.βs, As'))
-end
-
 @assert length(ARGS) == 2 "Usage: julia run.jl <experiment_name> <network_number>"
 try
     arg_name = ARGS[1][end] == '/' ? ARGS[1][1:end-1] : ARGS[1]
@@ -236,8 +203,7 @@ writedlm("git_heads/git_heads_$(exp_nb).dat", git_heads)
     (!α_Θ_exps || isdir("heatmaps/data")) &&
         (!β_crit_exps || isdir("heatmaps/data")) &&
         (!ρ_β_exps || isdir("ldata")) &&
-        (!ρ_t_exps || isdir("tdata")) &&
-        (!mmca_exps || isdir("ldata"))
+        (!ρ_t_exps || isdir("tdata"))
 end "Folder structure is not properly initialised"
 
 if α_Θ_exps
@@ -258,9 +224,4 @@ end
 if ρ_t_exps
     println("ρ(t) experiments: ")
     @time ρ_t(ρ_t_params, exp_nb)
-end
-
-if mmca_exps
-    println("mmca experiments: ")
-    @time mmca_ρ(mmca_params, exp_nb)
 end

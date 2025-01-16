@@ -112,20 +112,6 @@ function ρ_t(params, nb_exps)
     writedlm("tdata/As.dat", As[1:idx, :])
 end
 
-function mmca_ρ(params, nb_exps)
-
-    Rs = zeros(length(params.xs) + 1, length(params.βs))'
-    As = zeros(length(params.xs) + 1, length(params.βs))'
-
-    for i in 1:nb_exps
-        Rs += readdlm("ldata/Rs_mmca_$i.dat") / nb_exps
-        As += readdlm("ldata/As_mmca_$i.dat") / nb_exps
-    end
-
-    writedlm("ldata/Rs_mmca.dat", Rs)
-    writedlm("ldata/As_mmca.dat", As)
-end
-
 if length(ARGS) == 1
     experiment = ARGS[1][end] == '/' ? ARGS[1][1:end-1] : ARGS[1]
     for_exp = " for experiment $experiment"
@@ -171,18 +157,13 @@ if length(ARGS) == 1
         ρ_t(ρ_t_params, Nb_networks)
     end
 
-    if mmca_exps
-        @assert ρ_β_exps "mmca, without baseline things will break"*for_exp
-        mmca_ρ(mmca_params, Nb_networks)
-    end
-
     try
         mkdir("externalize")
     catch
     end
     generate_latex_document(
         title, name, git_heads, α_Θ_exps, β_crit_exps,
-        ρ_β_exps, ρ_t_exps, mmca_exps;
+        ρ_β_exps, ρ_t_exps;
         α_Θ_extended=α_Θ_params.extended,
         β_ρs=β_crit_params.ρs,
         ρ_β_xs=ρ_β_params.xs,

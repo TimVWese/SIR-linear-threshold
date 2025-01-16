@@ -31,7 +31,7 @@ function git_status_section(indent, git_heads)
 end
 
 function generate_latex_document(
-    title, name, git_heads, α_Θ_enabled, β_crit_enabled, ρ_β_enabled, ρ_t_enabled, mmca_enabled;
+    title, name, git_heads, α_Θ_enabled, β_crit_enabled, ρ_β_enabled, ρ_t_enabled;
     α_Θ_extended=false, β_ρs=[], ρ_β_xs=[], ρ_β_xlabel="", ρ_t_xs=[], ρ_t_xlabel=""
 )
     main = read("../latex/prefix.textemp", String)*"\n"
@@ -39,9 +39,6 @@ function generate_latex_document(
     indent = "  "
 
     nb_xs = string(length(ρ_β_xs))
-    mmca_cmd = mmca_enabled ?
-        C::String -> "\\addmmca{"*C*"}{"*nb_xs*"}" :
-        C::String -> ""
 
     main = replace(main,
         "TITLE"=>title,
@@ -51,8 +48,8 @@ function generate_latex_document(
         "NTXS"=>string(length(ρ_t_xs)),
         "RHOTXLABEL"=>ρ_t_xlabel,
         "RHOTXS"=>string(collect(ρ_t_xs))[2:end-1],
-        "MMCAA"=>mmca_cmd("A"),
-        "MMCAR"=>mmca_cmd("R"),
+        "MMCAA"=>"",
+        "MMCAR"=>"",
     )
 
     main = α_Θ_extended ?
