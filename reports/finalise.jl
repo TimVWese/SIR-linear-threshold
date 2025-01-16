@@ -128,8 +128,8 @@ if length(ARGS) == 1
     git_heads = (
         project=git_heads_raw[1],
         General=git_heads_raw[2],
-        LuMV=git_heads_raw[3],
-        LuMV_status=git_heads_raw[4],
+        SIRLT=git_heads_raw[3],
+        SIRLT_status=git_heads_raw[4],
     )
 
     for i in 2:Nb_networks
@@ -137,8 +137,8 @@ if length(ARGS) == 1
         and_netw = for_exp*" and network $i"
         @assert git_heads.project == other_gh[1] "Project head differs over networks"*and_netw
         @assert git_heads.General == other_gh[2] "General head differs over networks"*and_netw
-        @assert git_heads.LuMV == other_gh[3] "LuMV head differs over networks"*and_netw
-        @assert git_heads.LuMV_status == other_gh[4] "LuMV status differs over networks"*and_netw
+        @assert git_heads.SIRLT == other_gh[3] "SIRLT head differs over networks"*and_netw
+        @assert git_heads.SIRLT_status == other_gh[4] "SIRLT status differs over networks"*and_netw
     end
 
     if α_Θ_exps

@@ -1,4 +1,4 @@
-using LuMV
+using SIRLT
 using General
 using NetworkDynamics, Graphs
 using DifferentialEquations: solve, DiscreteProblem, FunctionMap
@@ -83,7 +83,7 @@ function β_crit(params, exp_nb)
                 Nb_succ = 0
                 for _ in 1:params.Nb_o
                     try
-                        βs[x_idx, y_idx] += λ_critical(x₀, nds[tid], params.x₀_gen!, p; Nb=params.Nb_i, prop_I=ρ)
+                        βs[x_idx, y_idx] += β_critical(x₀, nds[tid], params.x₀_gen!, p; Nb=params.Nb_i, prop_I=ρ)
                         Nb_succ += 1
                     catch e
                         if !(e isa ArgumentError)
@@ -176,7 +176,7 @@ function git_dir(package)
 end
 
 const General_dir = git_dir(General)
-const LuMV_dir = git_dir(LuMV)
+const SIRLT_dir = git_dir(SIRLT)
 git_head(gitdir) = strip(read(`git --git-dir $gitdir rev-parse HEAD`, String))
 git_status(gitdir) = begin
     workdir = gitdir[1:end-5]
@@ -186,8 +186,8 @@ end
 const git_heads = (
     strip(read(`git rev-parse HEAD`, String)), # project
     git_head(General_dir), # General
-    git_head(LuMV_dir), # LuMV
-    git_status(LuMV_dir), # LuMV_status
+    git_head(SIRLT_dir), # SIRLT
+    git_status(SIRLT_dir), # SIRLT status
 )
 
 if !isdir("git_heads")

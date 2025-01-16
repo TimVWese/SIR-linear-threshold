@@ -35,7 +35,7 @@ network_opi() = watts_strogatz(n^2, 4, 1)
 network_epi_small() = erdos_renyi(n_small^2, 0.05)
 network_opi_small() = watts_strogatz(n_small^2, 4, 1)
 
-dynamics(epi, opi) = LuMV_bi(epi, opi)
+dynamics(epi, opi) = SIRLT_dynamics(epi, opi)
 
 dynamics(exp) = dynamics(read_from_mtx("graph_data/epi_$(exp).mtx"), read_from_mtx("graph_data/opi_$(exp).mtx"))
 small_dynamics(exp) = dynamics(read_from_mtx("graph_data/epi_small_$(exp).mtx"), read_from_mtx("graph_data/opi_small_$(exp).mtx"))
