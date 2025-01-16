@@ -1,4 +1,3 @@
-using Plotters: heatsave
 using Graphs, Plots
 using DelimitedFiles
 using Logging
@@ -21,6 +20,7 @@ heatplot = (data, params; rescale=1.0, clim=(0, 1)) -> heatmap(
 )
 
 include("latex/latex.jl")
+include("plots.jl")
 
 function α_Θ(params, nb_exps)
     Rs = zeros(length(params.xs), length(params.ys))
