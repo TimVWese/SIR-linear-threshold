@@ -4,6 +4,21 @@ using NetworkDynamics, Graphs
 using DifferentialEquations: solve, DiscreteProblem, FunctionMap
 using DelimitedFiles
 
+dynamics(g::AbstractGraph) = SIRLT_dynamics(g)
+dynamics(g::AbstractGraph, ω::Real) = SIRLT_dynamics(g, ω)
+dynamics(epi::AbstractGraph, opi::AbstractGraph) = SIRLT_dynamics(epi, opi)
+dynamics(epi::AbstractGraph, opi::AbstractGraph, ω::Real) = SIRLT_dynamics(epi, opi, ω)
+
+dynamics(exp::Integer, multiplex::Bool) = multiplex ?
+    dynamics(read_from_mtx("graph_data/epi_$(exp).mtx"), read_from_mtx("graph_data/opi_$(exp).mtx")) :
+    dynamics(read_from_mtx("graph_data/epi_$(exp).mtx"))
+dynamics(exp::Integer, multiplex::Bool, ω::Real) = multiplex ?
+    dynamics(read_from_mtx("graph_data/epi_$(exp).mtx"), read_from_mtx("graph_data/opi_$(exp).mtx"), ω) :
+    dynamics(read_from_mtx("graph_data/epi_$(exp).mtx"), ω)
+small_dynamics(exp::Integer, multiplex) = multiplex ?
+    dynamics(read_from_mtx("graph_data/epi_small_$(exp).mtx"), read_from_mtx("graph_data/opi_small_$(exp).mtx")) :
+    dynamics(read_from_mtx("graph_data/epi_small_$(exp).mtx"))
+
 function α_Θ(params, exp_nb)
     N = params.N
     Rs = zeros(length(params.xs), length(params.ys))
@@ -20,7 +35,7 @@ function α_Θ(params, exp_nb)
     network_epi = read_from_mtx("graph_data/epi_$exp_nb.mtx")
     avgₛs = [zeros(4) for i in 1:Threads.nthreads()]
     avgₒs = [zeros(2) for i in 1:Threads.nthreads()]
-    x₀s = [zeros(2 * N) for i in 1:Threads.nthreads()]
+    x₀s = [zeros(Int8, 2 * N) for i in 1:Threads.nthreads()]
     nds = [params.dynamics(exp_nb) for i in 1:Threads.nthreads()]
 
     for (x_idx, x) in enumerate(params.xs)
@@ -67,7 +82,7 @@ end
 function β_crit(params, exp_nb)
     N = params.N
     nb_ρ = length(params.ρs)
-    x₀s = [zeros(2N) for i in 1:Threads.nthreads()]
+    x₀s = [zeros(Int8, 2N) for i in 1:Threads.nthreads()]
     nds = [params.dynamics(exp_nb) for i in 1:Threads.nthreads()]
 
     for (ρ_idx, ρ) in enumerate(params.ρs)
@@ -110,7 +125,7 @@ function ρ_β(params, exp_nb)
 
     avgₛs = [zeros(4) for i in 1:Threads.nthreads()]
     avgₒs = [zeros(2) for i in 1:Threads.nthreads()]
-    x₀s = [zeros(2N) for i in 1:Threads.nthreads()]
+    x₀s = [zeros(Int8, 2N) for i in 1:Threads.nthreads()]
     nds = [params.dynamics(exp_nb) for i in 1:Threads.nthreads()]
 
     for (x_idx, x) in enumerate(params.xs)
@@ -132,13 +147,54 @@ function ρ_β(params, exp_nb)
     writedlm("ldata/As_$(exp_nb).dat", hcat(params.βs, As'))
 end
 
+function ρ_ω(params, exp_nb)
+    N = params.N
+
+    Rs = zeros(length(params.xs), length(params.ωs))
+    As = zeros(length(params.xs), length(params.ωs))
+
+    avgₛs = [zeros(4) for i in 1:Threads.nthreads()]
+    avgₒs = [zeros(2) for i in 1:Threads.nthreads()]
+    x₀s = [zeros(Int8, 2N) for i in 1:Threads.nthreads()]
+    #nds = [params.dynamics(exp_nb) for i in 1:Threads.nthreads()]
+
+    for (x_idx, x) in enumerate(params.xs)
+        Threads.@threads for ω_idx in eachindex(params.ωs)
+            tid = Threads.threadid()
+            avgₛ = avgₛs[tid]
+            avgₒ = avgₒs[tid]
+            x₀ = x₀s[tid]
+
+            ω = params.ωs[ω_idx]
+            p = params.p_gen(x)
+            for _ in 1:params.Nb
+                nd = params.dynamics(exp_nb, ω)
+                x₀_gen!(x₀)
+                prob = DiscreteProblem(nd, x₀, (1, params.Tₑ), p)
+                sol = params.early_termination ?
+                    solve(prob, FunctionMap(); callback=SIR_termination_cb, save_everystep=false) :
+                    solve(prob, FunctionMap(); callback=SIRLT_termination_cb, save_everystep=false)
+
+                avgₛ[:] .+= ρₛ(sol[end])
+                avgₒ[:] .+= ρₒ(sol[end])
+            end
+
+            Rs[x_idx, ω_idx] = avgₛ[3] / params.Nb
+            As[x_idx, ω_idx] = avgₒ[2] / params.Nb
+        end
+    end
+
+    writedlm("odata/Rs_$(exp_nb).dat", hcat(params.ωs, Rs'))
+    writedlm("odata/As_$(exp_nb).dat", hcat(params.ωs, As'))
+end
+
 function ρ_t(params, exp_nb)
     N = params.N
 
     Is = zeros(params.Tₑ, length(params.xs))
     As = zeros(params.Tₑ, length(params.xs))
 
-    x₀s = [zeros(2N) for i in 1:Threads.nthreads()]
+    x₀s = [zeros(Int8, 2N) for i in 1:Threads.nthreads()]
     nds = [params.dynamics(exp_nb) for i in 1:Threads.nthreads()]
 
     Threads.@threads for x_idx in eachindex(params.xs)
@@ -166,6 +222,8 @@ catch
     @assert false "Mistake in experiment definition"
 end
 
+dynamics(exp::Integer) = dynamics(exp, multiplex)
+dynamics(exp::Integer, ω::Real) = dynamics(exp, multiplex, ω)
 exp_nb = parse(Int64, ARGS[2])
 
 function git_dir(package)
@@ -219,6 +277,11 @@ end
 if ρ_β_exps
     println("ρ(β) experiments: ")
     @time ρ_β(ρ_β_params, exp_nb)
+end
+
+if ρ_ω_exps
+    println("ρ(ω) experiments: ")
+    @time ρ_ω(ρ_ω_params, exp_nb)
 end
 
 if ρ_t_exps

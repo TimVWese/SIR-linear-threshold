@@ -112,6 +112,9 @@ function ρ_t(params, nb_exps)
     writedlm("tdata/As.dat", As[1:idx, :])
 end
 
+dynamics() = nothing
+small_dynamics() = nothing
+
 if length(ARGS) == 1
     experiment = ARGS[1][end] == '/' ? ARGS[1][1:end-1] : ARGS[1]
     for_exp = " for experiment $experiment"

@@ -19,6 +19,7 @@ function initialise(Nb_networks, epi, epi_small, multiplex, opi=nothing, opi_sma
     mkdir("heatmaps/data")
     mkdir("ldata")
     mkdir("tdata")
+    mkdir("odata")
     mkdir("git_heads")
     mkdir("externalize")
 
@@ -36,6 +37,9 @@ function initialise(Nb_networks, epi, epi_small, multiplex, opi=nothing, opi_sma
         end
     end
 end
+
+dynamics() = nothing
+small_dynamics() = nothing
 
 if length(ARGS) == 0
     try

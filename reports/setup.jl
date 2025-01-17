@@ -6,6 +6,7 @@ title = "test"
 α_Θ_exps = true
 β_crit_exps = true
 ρ_β_exps = true
+ρ_ω_exps = true
 ρ_t_exps = true
 
 # Default paramameters
@@ -23,7 +24,8 @@ Nb_outers = 4
 Nb_trajectories = 10
 
 step = 0.25
-β_range = 0:0.05:0.4
+β_range = 0:0.0125:0.4
+ω_range = 0:0.025:1
 
 
 nb_I = 4
@@ -34,11 +36,6 @@ network_epi() = erdos_renyi(n^2, 0.05)
 network_opi() = watts_strogatz(n^2, 4, 1)
 network_epi_small() = erdos_renyi(n_small^2, 0.05)
 network_opi_small() = watts_strogatz(n_small^2, 4, 1)
-
-dynamics(epi, opi) = SIRLT_dynamics(epi, opi)
-
-dynamics(exp) = dynamics(read_from_mtx("graph_data/epi_$(exp).mtx"), read_from_mtx("graph_data/opi_$(exp).mtx"))
-small_dynamics(exp) = dynamics(read_from_mtx("graph_data/epi_small_$(exp).mtx"), read_from_mtx("graph_data/opi_small_$(exp).mtx"))
 
 x₀_gen!(x) = init!(x; nb_I=nb_I, prop_A=prop_A)
 
@@ -116,7 +113,27 @@ prec_dim = "y"
     dynamics = dynamics,
 
     x₀_gen! = x₀_gen!,
-    p_gen = (β, α) -> (β = β, μ = μ, ν = ν, Θ = Θ, α = α),
+    p_gen = (α) -> (β = β, μ = μ, ν = ν, Θ = Θ, α = α),
+
+    Tₑ = Tₑ,
+    Nb_networks = Nb_networks,
+    Nb = Nb_trajectories,
+
+    early_termination=early_termination,
+
+    xlabel = "\$\\alpha\$",
+)
+
+ρ_ω_params = (
+    N = n^2,
+
+    ωs = ω_range,
+    xs = 0:0.25:1,
+
+    dynamics = dynamics,
+
+    x₀_gen! = x₀_gen!,
+    p_gen = (α) -> (β = β, μ = μ, ν = ν, Θ = Θ, α = α),
 
     Tₑ = Tₑ,
     Nb_networks = Nb_networks,
@@ -147,4 +164,3 @@ prec_dim = "y"
 
     xlabel = "\$\\alpha\$",
 )
-
