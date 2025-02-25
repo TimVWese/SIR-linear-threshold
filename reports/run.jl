@@ -163,6 +163,8 @@ function ρ_ω(params, exp_nb)
             tid = Threads.threadid()
             avgₛ = avgₛs[tid]
             avgₒ = avgₒs[tid]
+            avgₛ .= 0.
+            avgₒ .= 0.
             x₀ = x₀s[tid]
 
             ω = params.ωs[ω_idx]

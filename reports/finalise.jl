@@ -95,6 +95,19 @@ function ρ_β(params, nb_exps)
     writedlm("ldata/As.dat", As)
 end
 
+function ρ_ω(params, nb_exps)
+    Rs = zeros(length(params.xs) + 1, length(params.ωs))'
+    As = zeros(length(params.xs) + 1, length(params.ωs))'
+
+    for i in 1:nb_exps
+        Rs += readdlm("odata/Rs_$i.dat") / nb_exps
+        As += readdlm("odata/As_$i.dat") / nb_exps
+    end
+
+    writedlm("odata/Rs.dat", Rs)
+    writedlm("odata/As.dat", As)
+end
+
 function ρ_t(params, nb_exps)
 
     Is = zeros(params.Tₑ, length(params.xs) + 1)
@@ -156,6 +169,10 @@ if length(ARGS) == 1
         ρ_β(ρ_β_params, Nb_networks)
     end
 
+    if ρ_ω_exps
+        ρ_ω(ρ_ω_params, Nb_networks)
+    end
+
     if ρ_t_exps
         ρ_t(ρ_t_params, Nb_networks)
     end
@@ -166,11 +183,13 @@ if length(ARGS) == 1
     end
     generate_latex_document(
         title, name, git_heads, α_Θ_exps, β_crit_exps,
-        ρ_β_exps, ρ_t_exps;
+        ρ_β_exps, ρ_ω_exps, ρ_t_exps;
         α_Θ_extended=α_Θ_params.extended,
         β_ρs=β_crit_params.ρs,
         ρ_β_xs=ρ_β_params.xs,
         ρ_β_xlabel=ρ_β_params.xlabel,
+        ρ_ω_xs=ρ_β_params.xs,
+        ρ_ω_xlabel=ρ_β_params.xlabel,
         ρ_t_xs=ρ_t_params.xs,
         ρ_t_xlabel=ρ_t_params.xlabel
     )
@@ -181,7 +200,7 @@ else
 
     nb_done = Threads.Atomic{Int}(0)
     Threads.@threads for experiment in experiments
-        run(`julia finalise.jl $experiment`)
+        run(`julia +1.6.7 --project finalise.jl $experiment`)
         Threads.atomic_add!(nb_done, 1)
         @info "Done with experiment $experiment, $(nb_done[]) out of $(length(experiments)) done"
     end

@@ -31,20 +31,24 @@ function git_status_section(indent, git_heads)
 end
 
 function generate_latex_document(
-    title, name, git_heads, α_Θ_enabled, β_crit_enabled, ρ_β_enabled, ρ_t_enabled;
-    α_Θ_extended=false, β_ρs=[], ρ_β_xs=[], ρ_β_xlabel="", ρ_t_xs=[], ρ_t_xlabel=""
+    title, name, git_heads, α_Θ_enabled, β_crit_enabled, ρ_β_enabled, ρ_ω_enabled, ρ_t_enabled;
+    α_Θ_extended=false, β_ρs=[], ρ_β_xs=[], ρ_β_xlabel="", ρ_ω_xs=[], ρ_ω_xlabel="",ρ_t_xs=[], ρ_t_xlabel=""
 )
     main = read("../latex/prefix.textemp", String)*"\n"
     suf = "\\end{document}\n"
     indent = "  "
 
-    nb_xs = string(length(ρ_β_xs))
+    nb_β_xs = string(length(ρ_β_xs))
+    nb_ω_xs = string(length(ρ_ω_xs))
 
     main = replace(main,
         "TITLE"=>title,
-        "NBXS"=>nb_xs,
+        "NBBXS"=>nb_β_xs,
         "RHOBXLABEL"=>ρ_β_xlabel,
         "RHOBXS"=>string(collect(ρ_β_xs))[2:end-1],
+        "NBOXS"=>nb_ω_xs,
+        "RHOOXLABEL"=>ρ_ω_xlabel,
+        "RHOOXS"=>string(collect(ρ_ω_xs))[2:end-1],
         "NTXS"=>string(length(ρ_t_xs)),
         "RHOTXLABEL"=>ρ_t_xlabel,
         "RHOTXS"=>string(collect(ρ_t_xs))[2:end-1],
@@ -84,6 +88,10 @@ function generate_latex_document(
 
     if ρ_β_enabled
         main = main*indent*"\\betafig"*"\n\n"
+    end
+
+    if ρ_β_enabled
+        main = main*indent*"\\omegafig"*"\n\n"
     end
 
     if ρ_t_enabled
